@@ -27,9 +27,9 @@ public abstract class AbstractDAO {
 	
 	// ESTADOS**********************
     // conexión a la BD
-    protected Connection cn = null;
+    protected static Connection cn = null;
     // statement
-	protected Statement stm = null;
+	protected static Statement stm = null;
 
 	// COMPORTAMIENTOS *******************
 	public AbstractDAO() {
@@ -59,10 +59,12 @@ public abstract class AbstractDAO {
         try {
         	ejecutaSQL("use information_schema");
         	// comprueba que existe la tabla usuarios
-            ResultSet rs= consultaSQL(" SELECT * "
+        	String miSQL=" SELECT * "
             		+ " FROM information_schema.tables"
             		+ " WHERE table_name = 'employee'"
-            		+ " and table_schema= "+ Constantes.BD);
+            		+ " and table_schema= '"+ Constantes.BD + "';";
+        	
+            ResultSet rs= consultaSQL(miSQL);
 			if (rs.next()) {
 				ejecutaSQL("use "+ Constantes.BD);
 				System.out.println("Base de datos "+ Constantes.BD+" abierta correctamente.");
@@ -82,7 +84,7 @@ public abstract class AbstractDAO {
 	 * Define el objeto connection para conectar con una BD MySQL
 	 * @return 
 	 */
-    protected Connection conectar() {
+    protected static Connection conectar() {
         try {
            Class.forName(Constantes.CONTROLADOR);
             cn = DriverManager.getConnection(Constantes.URL, Constantes.USUARIO, Constantes.CLAVE);

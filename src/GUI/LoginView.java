@@ -9,34 +9,25 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
-import com.sun.org.apache.xml.internal.security.algorithms.MessageDigestAlgorithm;
+import org.json.simple.JSONObject;
 
 import Common.Constantes;
-import DAO.UsuarioDAO;
-import GUI.FichaClienteView.MyKeyListener;
-
+import Common.FlujoClient;
 import java.awt.Font;
 import javax.swing.JPanel;
 import javax.swing.JButton;
-import java.awt.GridLayout;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.security.Key;
-import java.security.MessageDigest;
-import java.util.Base64;
-
-import javax.swing.JPasswordField;
-import java.awt.CardLayout;
-
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 
 import java.awt.FlowLayout;
-import java.awt.event.KeyAdapter;
 
 public class LoginView extends JFrame{
 
@@ -45,10 +36,10 @@ public class LoginView extends JFrame{
 	 */
 	private static final long serialVersionUID = 1L;
 	private JFrame frame;
-	private UsuarioDAO miuserdao;
+	private JSONObject mensaje;
 	private JTextField JTF_usuario;
 	private ImageIcon miimagen;
-	private JPasswordField Jpass;
+	
 	
 
 	/**
@@ -56,7 +47,7 @@ public class LoginView extends JFrame{
 	 */
 	public LoginView() {
 		initialize();
-		miuserdao= new UsuarioDAO();
+		mensaje= new JSONObject();
 	}
 
 	/**
@@ -98,6 +89,16 @@ public class LoginView extends JFrame{
 		Panel_contenedor.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		Panel_contenedor.setBackground(Color.decode("#2A9D8F"));
 		
+		// carga imagen
+        try {
+			 BufferedImage img = ImageIO.read(new File(Constantes.ICONO));
+			 ImageIcon icon = new ImageIcon(img);
+			 JLabel LBImg = new JLabel(icon);
+			 Panel_contenedor.add(LBImg);
+         } catch (IOException e) {
+            e.printStackTrace();
+         }
+        
 		JPanel panel_imagen = new JPanel();
 		Panel_contenedor.add(panel_imagen);
 		panel_imagen.setBackground(Color.decode("#2A9D8F"));
@@ -105,11 +106,7 @@ public class LoginView extends JFrame{
 		miimagen= new ImageIcon("src/png/logo_login.png");
 		JLabel JLB_imagen = new JLabel(miimagen);
 		panel_imagen.add(JLB_imagen);
-		
-		
-		
-		
-		
+			
 		JPanel panel_login = new JPanel();
 		Panel_contenedor.add(panel_login);
 		panel_login.setLayout(new BorderLayout(0, 0));
@@ -148,33 +145,6 @@ public class LoginView extends JFrame{
 		Panel_usuario.add(JTF_usuario);
 		JTF_usuario.setColumns(10);
 		JTF_usuario.requestFocus();
-		
-		JPanel panel_passwd = new JPanel();
-		panel_login.add(panel_passwd, BorderLayout.CENTER);
-		panel_passwd.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-		panel_passwd.setBackground(Color.decode("#2A9D8F"));
-		
-		JLabel JLB_passwd = new JLabel("Contrase\u00F1a");
-		panel_passwd.add(JLB_passwd);
-		
-		Jpass = new JPasswordField();
-		Jpass.setColumns(10);
-		panel_passwd.add(Jpass);
-		
-		Jpass.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if(e.getKeyCode()==KeyEvent.VK_ENTER){
-	                   login();
-	                }
-	                if(e.getKeyCode()==KeyEvent.VK_ESCAPE){
-	                	if(JOptionPane.showConfirmDialog(frame, "¿Seguro que quiere salir de la aplicación?", 
-	                			"Salir", JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION) {
-	                		System.exit(0);;
-	                	}
-					}
-			}
-		});
 		
 		JPanel panel_boton = new JPanel();
 		panel_login.add(panel_boton, BorderLayout.SOUTH);
@@ -234,57 +204,37 @@ public class LoginView extends JFrame{
 	 * Comprueba el login 
 	 */
 	public void login() {
-		if ((JTF_usuario.getText().length()>0)||Jpass.getText().length()>0) {
-			// encriptar contraseña
-			String cadena="";
-			cadena = Constantes.encriptar(Jpass.getPassword());
-			
-			// comprobar login
-			if (miuserdao.compobarlogin(JTF_usuario.getText(),cadena)==true) {
-				frame.setVisible(false);
-				navegacion();
+		FlujoClient client=null;
+		int puerto= 6125;
+		
+		if ((JTF_usuario.getText().length()>0)) {
+			// crea el cliente
+			client= new FlujoClient(puerto);
+			// crea el objeto a enviar
+			mensaje.put("orden","Login");
+			mensaje.put("id",JTF_usuario.getText());
+			// el cliente envia el login al server
+			client.clientSend(mensaje);
+			// recibe el mensaje
+			JSONObject mensaje=client.clientReceive();
+			if (mensaje!=null) {
+				frame.dispose();;
+				MenuVentasView miMenuV = new MenuVentasView(mensaje);
+				miMenuV.getFrame().setVisible(true);
 			} else {
-				Jpass.setBackground(Color.decode("#FF0000"));
+				JOptionPane.showMessageDialog(frame, "Empleado inexistente");
 			}
+			// cierra el cliente
+			client.clientClose();
 		} else {
-			JOptionPane.showMessageDialog(frame, "Debe rellenar todos los datos");
+			JOptionPane.showMessageDialog(frame, "Debe rellenar el número de empleado");
 		}
 
 	}
 	
 
 
-	/**
-	 * navegación al menú inicial
-	 */
-	private void navegacion() {
-		switch ( miuserdao.getuser().getRango()) {
-			case "vendedor":
-				//llamar a la GUI de menú inicial ventas
-				MenuVentasView miMenuV = new MenuVentasView(miuserdao.getuser());
-				miMenuV.getFrame().setVisible(true);
-				break;
-			case "mecanico":
-				//llamar a la GUI de menú inicial taller
-				MenuMecanicoView miMenuM = new MenuMecanicoView(miuserdao.getuser());
-				miMenuM.getFrame().setVisible(true);
-				break;
-			case "jefe":
-				//llamar a la GUI de menú inicial Jefe
-				MenuJefeMax miMenuJ = new MenuJefeMax(miuserdao.getuser());
-				miMenuJ.getFrame().setVisible(true);
-				break;
-			case "jefeTaller":
-				//llamar a la GUI de menú inicial jefe de taller
-				MenuJTallerView miMenuJT = new MenuJTallerView(miuserdao.getuser());
-				miMenuJT.getFrame().setVisible(true);
-				
-				break;
-			default:
-				System.out.println("¿Comorrrrrrrr?");
-		}			
-	}
-	
+
 	/*
 	 * Implementa keyEvents
 	 */

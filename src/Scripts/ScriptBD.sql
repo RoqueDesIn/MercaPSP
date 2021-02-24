@@ -1,22 +1,22 @@
 create table if not exists products(
-	id int AUTO_INCREMENT unique NOT NULL primary key,
+	id integer AUTO_INCREMENT unique NOT NULL primary key,
     product varchar(20),
 	customer_price float,
     provider_price float,
-    stock_amount int
+    stock_amount integer
 );
 
 create table if not exists purchases(
 	id int AUTO_INCREMENT unique NOT NULL primary key,
-	id_employee int
-	purchase_date  date,
+	id_employee integer,
+	purchase_date  date
 
 );
 
 create table if not exists lpurchases(
 	idpurchase int AUTO_INCREMENT unique NOT NULL, 
 	idlin int NOT NULL,
-	idproduct int NOT NULL,
+	idproduct integer NOT NULL,
 	quantity float NOT NULL,
 	primary key (idpurchase, idlin)
 );

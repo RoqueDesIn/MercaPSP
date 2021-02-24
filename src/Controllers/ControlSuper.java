@@ -1,21 +1,21 @@
 package Controllers;
 
-import DAO.UsuarioDAO;
+import DAO.EmployeeDAO;
 import GUI.LoginView;
 
 
-public class ControladorPrTaller {
+public class ControlSuper {
 	
 	//estados
 	private ControBBDD controbbdd;
 	private LoginView miLoginView;
-	private UsuarioDAO miUsuarioDAO;
+	private EmployeeDAO miUsuarioDAO;
 	
 	//comportamientos
 	/**
 	 * constructor
 	 */
-	public ControladorPrTaller() {
+	public ControlSuper() {
 
 		// instancia el controlador de BBDD
 		controbbdd= new ControBBDD();
@@ -24,7 +24,7 @@ public class ControladorPrTaller {
 		// instancia la loginView
 		miLoginView = new LoginView();
 		//Instancia el usuarioDAO
-		miUsuarioDAO= new UsuarioDAO();
+		miUsuarioDAO= new EmployeeDAO();
 		
 		// muestra el Login
 		miLoginView.getFrame().setAlwaysOnTop(true);
@@ -33,15 +33,6 @@ public class ControladorPrTaller {
 		System.out.println("fin ControladorTaller");
 	}
 	
-	/**
-	 * Comprueba el login
-	 */
-	public boolean comprobarlogin(int employee) {
-		return miUsuarioDAO.compobarlogin(employee);
-	}
-	
-	
-
 	/**
 	 * Inicia la BBDD
 	 */
