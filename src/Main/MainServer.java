@@ -11,6 +11,7 @@ import Common.Constantes;
 import Common.FlujoServer;
 import Common.SendMail;
 import Common.XmlReader;
+import DAO.AbstractDAO;
 import DAO.EmployeeDAO;
 import DAO.LPurchaseDAO;
 import DAO.ProductDAO;
@@ -21,18 +22,20 @@ import Models.Purchase;
 
 public class MainServer {
 
-	static Scanner sc= new Scanner (System.in);
-	static JSONObject mensaje=null;
+	private static JSONObject mensaje=null;
+	private static String[] credencialycorreo;
+	private static FlujoServer server=null;
+	private static JSONObject result = null;
+	
 	@SuppressWarnings("unchecked")
 	public static void main(String[] args) {
 	
 		// definición de variables
-		FlujoServer server=null;
-		JSONObject result = null;
+		AbstractDAO abstractdao = new AbstractDAO() {};
 
 		// extraer datos del correo y la clave del fichero XML
 		XmlReader xmlreader = new XmlReader();
-		String[] credencialycorreo = xmlreader.leeXml().split(";");
+		credencialycorreo = xmlreader.leeXml().split(";");
 		
 		boolean salir=false;
 		while (!salir) {
@@ -64,56 +67,7 @@ public class MainServer {
 			
 			// venta
 			if  (mensaje.get("orden").equals("Cobro")) {
-				// obtener fecha del sistema
-				Calendar c1 = Calendar.getInstance();
-				// obtener fecha del sistema
-				Date fechaObject =  new Date(c1.getTimeInMillis());
-				String fecha =fechaObject.toString();
-				System.out.println (fecha);
-				
-				//crea el producto a consultar y el DAO
-				ProductDAO productdao= new ProductDAO();
-				Product product = productdao.getProductById(Integer.valueOf(mensaje.get("idproduct").toString()));
-				
-				// comprueba rotura de stock y si la hay envía correo
-				if (productdao.checkStock(product)<=Integer.valueOf(mensaje.get("quantity").toString())) {
-					// enviar mail anunciando la rotura de stock
-					// configuración del mail a enviar
-					String destinatario =  credencialycorreo[0]; //A quien le quieres escribir.
-					//destinatario = "laquesehaliadopsp@gmail.com";
-				    String asunto = "Correo enviado por la App PSPMerca.java a causa de una rotura de stock";
-				    // configura cuerpo del correo
-				    String cuerpo = "El producto "+ mensaje.get("idproduct") 
-				    				+ " con el precio de proveedor " 
-				    				+ product.getProvider_price()
-				    				+ " ha agotado sus existencias  el " + fecha;
-				    String clave=credencialycorreo[1];
-				    //clave="M1Cl4v3#!psp";
-				    SendMail sendmail = new SendMail();
-				    sendmail.enviarConGMail(destinatario, asunto, cuerpo,clave);
-				} 
-				
-				// crea la venta
-				PurchaseDAO purchasedao = new PurchaseDAO();
-				Purchase purchase = new Purchase(0,
-						Integer.valueOf(mensaje.get("id_employee").toString()),
-						fechaObject );
-				int idLastVenta = purchasedao.cobro(purchase);
-				
-				// crea la linea de venta
-				LPurchaseDAO lpurchasedao = new LPurchaseDAO();
-				LPurchase lpurchase = new LPurchase(
-						idLastVenta,
-						0,
-						Integer.valueOf(mensaje.get("idproduct").toString()),
-						Float.valueOf(mensaje.get("quantity").toString()) 
-						);
-				
-				result.put("Resultado", String.valueOf(lpurchasedao.cobro(lpurchase)));
-				
-				//enviar mensaje
-				server.serverSend(result);
-				result=new JSONObject();
+				gestionaCobro(mensaje);
 			}
 			
 			// caja del dia
@@ -130,6 +84,66 @@ public class MainServer {
 	
 	}
 	
+	/**
+	 * Gestiona una venta
+	 * @param mensaje2 mensaje recibido
+	 */
+	private static void gestionaCobro(JSONObject mensaje2) {
+		// obtener fecha del sistema
+		Calendar c1 = Calendar.getInstance();
+		// obtener fecha del sistema
+		Date fechaObject =  new Date(c1.getTimeInMillis());
+		String fecha =fechaObject.toString();
+		System.out.println (fecha);
+		
+		//crea el producto a consultar y el DAO
+		ProductDAO productdao= new ProductDAO();
+		Product product = productdao.getProductById(Integer.valueOf(mensaje.get("idproduct").toString()));
+		
+		// comprueba rotura de stock y si la hay envía correo
+		if (productdao.checkStock(product)<=Integer.valueOf(mensaje.get("quantity").toString())) {
+			// enviar mail anunciando la rotura de stock
+			// configuración del mail a enviar
+			String destinatario =  credencialycorreo[0]; //A quien le quieres escribir.
+			//destinatario = "laquesehaliadopsp@gmail.com";
+		    String asunto = "ROTURA DE STOCK";
+		    // configura cuerpo del correo
+		    String cuerpo = "El producto "+ mensaje.get("idproduct") 
+		    				+ " con el precio de proveedor " 
+		    				+ product.getProvider_price()
+		    				+ "€ ha agotado sus existencias  el " + fecha;
+		    String clave=credencialycorreo[1];
+		    //clave="M1Cl4v3#!psp";
+		    SendMail sendmail = new SendMail();
+		    sendmail.enviarConGMail(destinatario, asunto, cuerpo,clave);
+		}
+		
+		// resta el stock del producto
+		productdao.restaStock(product,Integer.valueOf(mensaje.get("quantity").toString()));
+		
+		// crea la venta
+		PurchaseDAO purchasedao = new PurchaseDAO();
+		Purchase purchase = new Purchase(0,
+				Integer.valueOf(mensaje.get("id_employee").toString()),
+				fechaObject );
+		int idLastVenta = purchasedao.cobro(purchase);
+		
+		// crea la linea de venta
+		LPurchaseDAO lpurchasedao = new LPurchaseDAO();
+		LPurchase lpurchase = new LPurchase(
+				idLastVenta,
+				0,
+				Integer.valueOf(mensaje.get("idproduct").toString()),
+				Float.valueOf(mensaje.get("quantity").toString()) 
+				);
+		
+		result.put("Resultado", String.valueOf(lpurchasedao.cobro(lpurchase)));
+		
+		//enviar mensaje
+		server.serverSend(result);
+		result=new JSONObject();		
+	}
+
 
 	/**
 	 * Recibe array de objetos producto y mapea el Json

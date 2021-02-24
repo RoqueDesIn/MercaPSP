@@ -14,7 +14,6 @@ public class EmployeeDAO extends  AbstractDAO{
 	 * @param contra
 	 * @return
 	 */
-
 	public static JSONObject loginUser(JSONObject object) {
 		ResultSet rs= null;
 		JSONObject result = new JSONObject();

@@ -61,8 +61,6 @@ public class XmlReader {
                                     + ", Valor: " + hijo.getTextContent());
                             if (hijo.getNodeName().contentEquals("EmailEmergencia")) email = hijo.getTextContent();
                             if (hijo.getNodeName().contentEquals("clave")) clave = hijo.getTextContent();
-
-                            
                         }
  
                     }

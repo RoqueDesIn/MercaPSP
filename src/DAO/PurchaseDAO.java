@@ -10,7 +10,7 @@ public class PurchaseDAO extends AbstractDAO{
 	/**
 	 * Añade un cobro
 	 * @param Cobro objeto purchase a añadir
-	 * @return id de venta realizada
+	 * @return id automático de venta realizada
 	 */
 	public int cobro(Purchase purchase) {
 		int idVenta =0;

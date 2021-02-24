@@ -53,7 +53,7 @@ public class ProductDAO extends AbstractDAO{
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-
+		
 		return result;
 	}
 	
@@ -84,6 +84,21 @@ public class ProductDAO extends AbstractDAO{
 
 		return result;
 
+	}
+	
+	/**
+	 * resta el stock de un artículo
+	 * @param id
+	 * @param valueOf
+	 */
+	public void restaStock(Product product, Integer quantity) {
+		// resta el stock venta
+		String 	strSql="update products as p"
+				+ " set stock_amount= '"
+				+ (checkStock(product) - quantity)
+				+"' where p.id=" + product.getId();
+		ejecutaSQL(strSql);
+		
 	}
 	
 	// fin DAO

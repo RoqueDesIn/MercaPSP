@@ -95,12 +95,11 @@ public class MenuVentasView extends JFrame {
 		creaPanelCentral();
 		creaPanelDerecho();
 		frame.pack();
-		
 	}
+	
 	/**
 	 * Crea panel Central
 	 */
-
 	private void creaPanelCentral() {
 		pnCentral = new JPanel();
 		panel_general.add(pnCentral);
@@ -109,16 +108,7 @@ public class MenuVentasView extends JFrame {
 		
 		JPanel PNBusquedas = new JPanel();
 		pnCentral.add(PNBusquedas);
-		PNBusquedas.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
-		
-		JButton btCobro = new JButton("Cobro");
-		PNBusquedas.add(btCobro);
-		btCobro.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				enviarCobro();
-			}
-		});
+		PNBusquedas.setLayout(new FlowLayout(FlowLayout.CENTER, 2, 2));
 		
 		JLabel LBL_idbusc = new JLabel("Producto");
 		PNBusquedas.add(LBL_idbusc);
@@ -134,6 +124,15 @@ public class MenuVentasView extends JFrame {
 		tfCantidad.setColumns(10);
 		PNBusquedas.add(tfCantidad);
 		
+		JButton btCobro = new JButton("Cobro");
+		PNBusquedas.add(btCobro);
+		btCobro.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				enviarCobro();
+			}
+		});
+		
 		JScrollPane scrollPane = new JScrollPane();
 		pnCentral.add(scrollPane);
 		tbVenta = new JTable();
@@ -142,6 +141,9 @@ public class MenuVentasView extends JFrame {
 
 	}
 	
+	/**
+	 * Crea la tabla de ventas
+	 */
 	private void creaTablaVentas() {
 		
 		tbVenta.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -198,7 +200,10 @@ public class MenuVentasView extends JFrame {
 	 */
 	@SuppressWarnings("unchecked")
 	private void enviarCobro(){
-		if (!(tfCantidad.getText()==null || tfProducto.getText()==null)) {
+		if ((tfCantidad.getText().length()==0 || tfProducto.getText().length()==0)) {
+			JOptionPane.showMessageDialog(frame, "Debe introducir Artículo y Cantidad.", 
+	    			"Datos nulos", JOptionPane.ERROR_MESSAGE);
+		} else {
 			// crea el socket cliente
 			FlujoClient client = new FlujoClient(Constantes.PUERTO);
 			// crea el objeto a enviar
@@ -213,22 +218,24 @@ public class MenuVentasView extends JFrame {
 			// recibe el mensaje
 			mensaje=client.clientReceive();
 			cargaLineaV();
-		} else {
-			JOptionPane.showMessageDialog(frame, "Debe introducir Artículo y Cantidad.", 
-	    			"Datos nulos", JOptionPane.ERROR_MESSAGE);
+			// limpia campos y da el foco a nuevo producto.
+			tfCantidad.setText("");
+			tfProducto.setText("");
+			tfProducto.requestFocus();
 		}
 
 	}
-/**
- * carga una linea en la tabla de venta
- */
+	
+	/**
+	 * carga una linea en la tabla de venta
+	 */
 	private void cargaLineaV() {
 		ProductDAO productdao = new ProductDAO();
 		Object [] fila = new Object[4];
 		
 			fila[0]=productdao.getProductById(Integer.valueOf(tfProducto.getText())).getProduct();
 			fila[1]=Integer.valueOf(tfCantidad.getText());
-			fila[2]=Float.valueOf(tfProducto.getText());
+			fila[2]=productdao.getProductById(Integer.valueOf(tfProducto.getText())).getCustomer_price();
 			
 			float Cprice = productdao.getProductById(Integer.valueOf(tfProducto.getText())).getCustomer_price();
 			fila[3]=Float.valueOf(Integer.valueOf(tfCantidad.getText()) * Cprice);
@@ -250,9 +257,10 @@ public class MenuVentasView extends JFrame {
 		creaTablaProductos();	
 		scrollPane.setViewportView(tbProduct);
 	}
-/**
- * crea la tabla de productos
- */
+	
+	/**
+	 * crea la tabla de productos
+	 */
 	private void creaTablaProductos() {
 		tbProduct = new JTable();
 		tbProduct.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -336,7 +344,6 @@ public class MenuVentasView extends JFrame {
 			fila[3]=reg.get("provider_price");
 			fila[4]=reg.get("stock_amount");
 			modeloTbP.addRow(fila);
-
 		}
 
 	}
@@ -350,10 +357,11 @@ public class MenuVentasView extends JFrame {
 		panel_opciones.setLayout(new BoxLayout(panel_opciones, BoxLayout.Y_AXIS));
 		PNIzquierdo.add(panel_opciones);
 		
+		// enlace cobrar compra
 		JLabel lb_buscar_cli = new JLabel("1. Cobrar compra");
-		lb_buscar_cli.setBorder(BorderFactory.createEmptyBorder(5,0,5,0));
 		lb_buscar_cli.setFont(new Font("Tahoma", Font.PLAIN, 14));
 		lb_buscar_cli.setForeground(Color.decode("#E9C46A"));
+		lb_buscar_cli.setBorder(BorderFactory.createEmptyBorder(2,10,2,2));	
 		panel_opciones.add(lb_buscar_cli);
 		lb_buscar_cli.addMouseListener(new MouseAdapter() {
 			@Override
@@ -373,13 +381,13 @@ public class MenuVentasView extends JFrame {
 			}
 		});
 
-		
-		JLabel JLB_ficha_cliente = new JLabel("2. Obtener la caja del día");
-		JLB_ficha_cliente.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		JLB_ficha_cliente.setForeground(Color.decode("#E9C46A"));
-		JLB_ficha_cliente.setBorder(BorderFactory.createEmptyBorder(5,0,5,0));
-		panel_opciones.add(JLB_ficha_cliente);
-		JLB_ficha_cliente.addMouseListener(new MouseAdapter() {
+		// enlace obtener caja	
+		JLabel lbCaja = new JLabel("2. Obtener la caja del día");
+		lbCaja.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lbCaja.setForeground(Color.decode("#E9C46A"));
+		lbCaja.setBorder(BorderFactory.createEmptyBorder(2,10,2,2));	;
+		panel_opciones.add(lbCaja);
+		lbCaja.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				//  muestra las caja total
@@ -399,37 +407,37 @@ public class MenuVentasView extends JFrame {
 			}
 			@Override
 			public void mouseEntered (MouseEvent e) {
-				JLB_ficha_cliente.setForeground(Color.RED);
-				JLB_ficha_cliente.setFont(new Font("Tahoma",Font.BOLD,14));
+				lbCaja.setForeground(Color.RED);
+				lbCaja.setFont(new Font("Tahoma",Font.BOLD,14));
 			}
 			@Override
 			public void mouseExited (MouseEvent e) {
-				JLB_ficha_cliente.setForeground(Color.ORANGE);
-				JLB_ficha_cliente.setFont(new Font("Tahoma",Font.PLAIN,14));
+				lbCaja.setForeground(Color.ORANGE);
+				lbCaja.setFont(new Font("Tahoma",Font.PLAIN,14));
 			}
 		});
 		
+		// enlace salir
+		JLabel lbSalir = new JLabel("3. Salir");
+		lbSalir.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lbSalir.setForeground(Color.decode("#E9C46A"));
+		lbSalir.setBorder(BorderFactory.createEmptyBorder(2,10,2,2));
+		panel_opciones.add(lbSalir);
 		
-		JLabel JLB_cerrar_sesion = new JLabel("3. Salir");
-		JLB_cerrar_sesion.setFont(new Font("Tahoma", Font.PLAIN, 14));
-		JLB_cerrar_sesion.setForeground(Color.decode("#E9C46A"));
-		JLB_cerrar_sesion.setBorder(BorderFactory.createEmptyBorder(5,0,5,0));
-		panel_opciones.add(JLB_cerrar_sesion);
-		
-		JLB_cerrar_sesion.addMouseListener(new MouseAdapter() {
+		lbSalir.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				salir();
 			}
 			@Override
 			public void mouseEntered (MouseEvent e) {
-				JLB_cerrar_sesion.setForeground(Color.RED);
-				JLB_cerrar_sesion.setFont(new Font("Tahoma",Font.BOLD,14));
+				lbSalir.setForeground(Color.RED);
+				lbSalir.setFont(new Font("Tahoma",Font.BOLD,14));
 			}
 			@Override
 			public void mouseExited (MouseEvent e) {
-				JLB_cerrar_sesion.setForeground(Color.ORANGE);
-				JLB_cerrar_sesion.setFont(new Font("Tahoma",Font.PLAIN,14));
+				lbSalir.setForeground(Color.ORANGE);
+				lbSalir.setFont(new Font("Tahoma",Font.PLAIN,14));
 			}
 		});		
 	}
@@ -447,40 +455,40 @@ public class MenuVentasView extends JFrame {
 		
 		imagenuser = new ImageIcon(Constantes.ICONO);
 		JLabel JLB_image_user = new JLabel(imagenuser);
-		JLB_image_user.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+		JLB_image_user.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
 		panel_user_actual.add(JLB_image_user);
 		
 		lbCurrUsu = new JLabel("Usuario actual");
 		lbCurrUsu.setHorizontalAlignment(SwingConstants.CENTER);
-		lbCurrUsu.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+		lbCurrUsu.setBorder(BorderFactory.createEmptyBorder(2,2,2,2));
 		panel_user_actual.add(lbCurrUsu);
 		
 		lb_USER_actual = new JLabel("ACTUAL");
 		panel_user_actual.add(lb_USER_actual);
 		lb_USER_actual.setText(String.valueOf(employee.getId()));
-		lb_USER_actual.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+		lb_USER_actual.setBorder(BorderFactory.createEmptyBorder(2,2,2,2));
 		
 		JLabel lbLastSession = new JLabel("Last Session");
 		panel_user_actual.add(lbLastSession);
 		lbLastSession.setText(String.valueOf(employee.getLast_session()));
-		lbLastSession.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));
+		lbLastSession.setBorder(BorderFactory.createEmptyBorder(2,2,2,2));
 		
 		JLabel lbContractDate = new JLabel("Contract Date");
 		panel_user_actual.add(lbContractDate);
 		lbContractDate.setText(String.valueOf(employee.getContract_date()));
-		lbContractDate.setBorder(BorderFactory.createEmptyBorder(15,15,15,15));		
+		lbContractDate.setBorder(BorderFactory.createEmptyBorder(2,2,2,2));		
 	}
 	
 	/**
 	 * crea panelizquierdo
 	 */
-
 	private void creaPanelIzquierdo() {
 		PNIzquierdo = new JPanel();
 		panel_general.add(PNIzquierdo);
 		PNIzquierdo.setBackground(Color.decode("#2A9D8F"));
 		PNIzquierdo.setLayout(new BoxLayout(PNIzquierdo, BoxLayout.Y_AXIS));		
 	}
+	
 	/**
 	 * crea panel general
 	 */
@@ -494,7 +502,6 @@ public class MenuVentasView extends JFrame {
 	/**
 	 * Crea Panel título
 	 */
-
 	private void creaPanelTitulo() {
 		// panel título
 		JPanel PNTitulo = new JPanel();
@@ -510,9 +517,10 @@ public class MenuVentasView extends JFrame {
 		LBTitulo.setForeground(Color.decode("#F4A261"));
 		PNTitulo.add(LBTitulo);		
 	}
-/**
- * CRea Frame principal
- */
+	
+	/**
+	 * CRea Frame principal
+	 */
 	private void creaFrame() {
 		// Frame principal
 		frame = new JFrame();
@@ -574,6 +582,8 @@ public class MenuVentasView extends JFrame {
 		public void keyTyped(KeyEvent arg0) {
 		}
 	}
+	
+	
 	
 //************************************************************* fin
 }

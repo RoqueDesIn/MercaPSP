@@ -54,11 +54,15 @@ public abstract class AbstractDAO {
         creaBD(); 
     }
     
-	protected void creaBD() {
+	private void creaBD() {
 		// crea la BD si es necesario
         try {
+        	
+        	
         	ejecutaSQL("use information_schema");
-        	// comprueba que existe la tabla usuarios
+        	ejecutaSQL("CREATE database IF NOT exists " + Constantes.BD);
+
+        	// comprueba que existe la tabla employee
         	String miSQL=" SELECT * "
             		+ " FROM information_schema.tables"
             		+ " WHERE table_name = 'employee'"
@@ -179,8 +183,7 @@ public abstract class AbstractDAO {
 	protected ResultSet consultaSQL(String strSql) {
 		ResultSet rst=null;
 		try {
-			//stm = cn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
-			rst = stm.executeQuery(strSql);
+				rst = stm.executeQuery(strSql);
 				return rst;
 		} catch (SQLException e) {
 			e.printStackTrace();

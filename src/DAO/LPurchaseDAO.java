@@ -3,12 +3,15 @@ package DAO;
 import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.Calendar;
 
 import Models.LPurchase;
 
 public class LPurchaseDAO extends AbstractDAO {
+	
 	public LPurchaseDAO () {}
+	
 	/**
 	 * Añade un cobro
 	 * @param Cobro objeto purchase a añadir
@@ -25,6 +28,11 @@ public class LPurchaseDAO extends AbstractDAO {
 		return ejecutaSQL(strSql); 
 	}
 	
+	/**
+	 * realiza caja diaria de un empleado en un dia concreto
+	 * @param idEmployee
+	 * @return cajaDiaria cantidad de la caja del dia
+	 */
 	public float cajaDiaria (int idEmployee) {
 		float result=0;
 		Calendar c1 = Calendar.getInstance();
@@ -39,8 +47,9 @@ public class LPurchaseDAO extends AbstractDAO {
 		
 		// ejecuta la consulta productos vendidos en el dia por un empleado
 		ResultSet rstProducts=consultaSQL(strSqlProducts);
-
 		try {
+			ResultSet rst;
+			Statement stm = cn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
 			//recorre los productos vendidos del empleado
 			while (rstProducts.next()) {
 				// extrae la cantidad de cada producto
@@ -51,7 +60,8 @@ public class LPurchaseDAO extends AbstractDAO {
 						+"' and pu.id=lp.idpurchase "
 						+ " and pu.purchase_date='"+ fechaObject
 						+ "' and pr.id='" +rstProducts.getInt(1)+"'";
-				ResultSet rst=consultaSQL(strSql);
+				// rst=consultaSQL(strSql);
+				rst = stm.executeQuery(strSql);
 				if (rst.next()) result=result+(rst.getInt(1)*dif);
 			}
 		} catch (SQLException e1) {
@@ -60,7 +70,6 @@ public class LPurchaseDAO extends AbstractDAO {
 		}
 		return result;
 	}
-
 
 // end DAO
 }

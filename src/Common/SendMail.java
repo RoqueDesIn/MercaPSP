@@ -13,7 +13,7 @@ public class SendMail {
 	public SendMail () {};
 	public void enviarConGMail(String destinatario, String asunto, String cuerpo, String clave) {
 	    // Esto es lo que va delante de @gmail.com en tu cuenta de correo. Es el remitente también.
-	    String remitente = "Sandokan@gmail.com";  //Para la dirección nomcuenta@gmail.com
+	    String remitente = destinatario;  //Para la dirección .... (se pone la misma porque es una prueba)
 
 	    Properties props = System.getProperties();
 	    props.put("mail.smtp.host", "smtp.gmail.com");  //El servidor SMTP de Google
