@@ -42,6 +42,9 @@ public abstract class AbstractDAO {
 	
     public void iniciar () {
           
+
+        // crear BD  y cargar datos si es necesario
+        creaBD();
 		// crea la conexión
         conectar();
         // crea el statement
@@ -51,14 +54,14 @@ public abstract class AbstractDAO {
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-        creaBD(); 
+ 
     }
     
 	private void creaBD() {
 		// crea la BD si es necesario
         try {
-        	
-        	
+        	cn = DriverManager.getConnection(Constantes.URLMYSQL, Constantes.USUARIO, Constantes.CLAVE);
+        	stm = cn.createStatement(ResultSet.TYPE_SCROLL_SENSITIVE,ResultSet.CONCUR_UPDATABLE);
         	ejecutaSQL("use information_schema");
         	ejecutaSQL("CREATE database IF NOT exists " + Constantes.BD);
 

@@ -42,6 +42,7 @@ public class LPurchaseDAO extends AbstractDAO {
 				+ " from lpurchases as lp, purchases as pu, employee as em, products as pr "
 				+ " where em.id=pu.id_employee "
 				+ " and pu.id=lp.idpurchase "
+				+ " and pr.id=lp.idproduct"
 				+ " and pu.id_employee='" +idEmployee
 				+ "' and pu.purchase_date='" + fechaObject + "'";
 		

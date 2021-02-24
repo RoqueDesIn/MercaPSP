@@ -3,7 +3,9 @@ package Common;
 public abstract class Constantes{
 	//estados
 	public static final String BD = "supermercado";
+	public static final String BDMYSQL = "information_schema";
 	public static final String CONTROLADOR = "com.mysql.jdbc.Driver";
+	public static final  String URLMYSQL = "jdbc:mysql://localhost:3306/"+ BDMYSQL + "?allowPublicKeyRetrieval=true&useSSL=false";
 	public static final  String URL = "jdbc:mysql://localhost:3306/"+ BD + "?allowPublicKeyRetrieval=true&useSSL=false";
 	//public static final String USUARIO = "root";
 	// public static final String CLAVE = "AdminMysql1211$";
