@@ -38,7 +38,7 @@ public class LPurchaseDAO extends AbstractDAO {
 		Calendar c1 = Calendar.getInstance();
 		Date fechaObject = new Date(c1.getTimeInMillis());
 		float dif=0;
-		String strSqlProducts = "select pr.id, pr.customer_price, pr.provider_price "
+		String strSqlProducts = "select distinct(pr.id), pr.customer_price, pr.provider_price "
 				+ " from lpurchases as lp, purchases as pu, employee as em, products as pr "
 				+ " where em.id=pu.id_employee "
 				+ " and pu.id=lp.idpurchase "
